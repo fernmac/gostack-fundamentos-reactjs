@@ -1,15 +1,19 @@
 import React, { useState } from 'react';
+
 import { useHistory } from 'react-router-dom';
 
 import filesize from 'filesize';
 
 import Header from '../../components/Header';
+
 import FileList from '../../components/FileList';
+
 import Upload from '../../components/Upload';
 
 import { Container, Title, ImportFileContainer, Footer } from './styles';
 
 import alert from '../../assets/alert.svg';
+
 import api from '../../services/api';
 
 interface FileProps {
@@ -18,24 +22,50 @@ interface FileProps {
   readableSize: string;
 }
 
+interface ResponseTransaction {
+  id: string;
+}
+
 const Import: React.FC = () => {
   const [uploadedFiles, setUploadedFiles] = useState<FileProps[]>([]);
+
   const history = useHistory();
 
   async function handleUpload(): Promise<void> {
-    // const data = new FormData();
-
-    // TODO
+    const data = new FormData();
 
     try {
-      // await api.post('/transactions/import', data);
+      const { file } = uploadedFiles[0];
+
+      data.append('file', file);
+
+      const response = await api.post<ResponseTransaction>(
+        '/transactions/import',
+        data,
+      );
+
+      if (response.data) {
+        history.push('/');
+      }
     } catch (err) {
-      // console.log(err.response.error);
+      console.log(err.response.error);
     }
   }
 
   function submitFile(files: File[]): void {
-    // TODO
+    if (files.length > 0) {
+      const fileUploaded = files[0] as File;
+
+      const { name, size } = fileUploaded;
+
+      setUploadedFiles([
+        {
+          file: fileUploaded,
+          name,
+          readableSize: filesize(size, { fullform: true }),
+        },
+      ]);
+    }
   }
 
   return (
